@@ -1,0 +1,138 @@
+// const Event = require('../Models/Event');
+
+// // Register user for an event
+// exports.registerForEvent = async (req, res) => {
+//   try {
+//     const event = await Event.findByIdAndUpdate(
+//       req.params.eventId,
+//       { $addToSet: { participants: req.user._id } },
+//       { new: true }
+//     );
+
+//     if (!event) {
+//       return res.status(404).json({ message: 'Event not found' });
+//     }
+
+//     res.status(200).json({ message: 'Registered for event successfully', event });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Registration failed', error: error.message });
+//   }
+// };
+
+// // Approve an event (Admin)
+// exports.approveEvent = async (req, res) => {
+//   try {
+//     const event = await Event.findByIdAndUpdate(
+//       req.params.eventId,
+//       { approved: true },
+//       { new: true }
+//     );
+
+//     if (!event) {
+//       return res.status(404).json({ message: 'Event not found' });
+//     }
+
+//     res.status(200).json({ message: 'Event approved successfully', event });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Approval failed', error: error.message });
+//   }
+// };
+
+// // Get all events
+// exports.getEvents = async (req, res) => {
+//   try {
+//     const events = await Event.find()
+//       .populate('organizer', 'name email')
+//       .populate('participants', 'name email');
+
+//     res.status(200).json({ message: 'Events fetched successfully', events });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error fetching events', error: error.message });
+//   }
+// };
+
+// // Create a new event
+// exports.createEvent = async (req, res) => {
+//   try {
+//     const event = new Event({
+//       ...req.body,
+//       organizer: req.user._id
+//     });
+
+//     await event.save();
+
+//     res.status(201).json({ message: 'Event created successfully', event });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error creating event', error: error.message });
+//   }
+// };
+
+
+const Event = require('../Models/Event');
+
+// Register user for an event
+exports.registerForEvent = async (req, res) => {
+  try {
+    const event = await Event.findByIdAndUpdate(
+      req.params.eventId,
+      { $addToSet: { participants: req.user._id } },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    res.status(200).json({ message: 'Registered for event successfully', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Registration failed', error: error.message });
+  }
+};
+
+// Approve an event (Admin)
+exports.approveEvent = async (req, res) => {
+  try {
+    const event = await Event.findByIdAndUpdate(
+      req.params.eventId,
+      { approved: true },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    res.status(200).json({ message: 'Event approved successfully', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Approval failed', error: error.message });
+  }
+};
+
+// Get all events
+exports.getEvents = async (req, res) => {
+  try {
+    const events = await Event.find()
+      .populate('organizer', 'name email')
+      .populate('participants', 'name email');
+
+    res.status(200).json({ message: 'Events fetched successfully', events });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching events', error: error.message });
+  }
+};
+
+// Create a new event
+exports.createEvent = async (req, res) => {
+  try {
+    const event = new Event({
+      ...req.body,
+      organizer: req.user._id
+    });
+
+    await event.save();
+
+    res.status(201).json({ message: 'Event created successfully', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating event', error: error.message });
+  }
+};
