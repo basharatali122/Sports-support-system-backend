@@ -38,7 +38,7 @@ const { auth, role } = require('../middleware/auth');
 router.get('/', getEvents);
 
 // Create a new event (protected: only coach and admin can create events)
-router.post('/', auth, role('coach', 'admin'), createEvent);
+router.post('/creatEvent', auth, role('coach', 'admin'), createEvent);
 
 // Register for an event (protected: requires authentication)
 router.post('/:eventId/register', auth, registerForEvent);

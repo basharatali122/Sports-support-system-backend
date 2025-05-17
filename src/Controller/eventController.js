@@ -133,6 +133,7 @@ exports.createEvent = async (req, res) => {
 
     res.status(201).json({ message: 'Event created successfully', event });
   } catch (error) {
+    console.error("❌ Error in createEvent:", error);
     res.status(500).json({ message: 'Error creating event', error: error.message });
   }
 };
