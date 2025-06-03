@@ -1,4 +1,4 @@
-const Team = require('../models/Team');
+const Team = require('../Models/Team');
 
 exports.getTeams = async (req, res) => {
   try {
@@ -32,6 +32,50 @@ exports.createTeam = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 };
+
+// ✅ Get all pending (not approved) teams
+exports.getPendingTeams = async (req, res) => {
+  try {
+    const teams = await Team.find({ approved: false })
+      .populate('members coach createdBy', 'name email'); // ✅ Added createdBy
+
+    res.json(teams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching pending teams', error: error.message });
+  }
+};
+
+
+
+
+exports.getApproveTeams = async (req, res) => {
+  try {
+    const teams = await Team.find({ approved: true })
+      .populate('members coach createdBy', 'name email'); // ✅ Added createdBy
+
+    res.json(teams);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching pending teams', error: error.message });
+  }
+};
+
+
+
+// ✅ Approve a specific team
+exports.approveTeam = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.teamId);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    team.approved = true;
+    await team.save();
+
+    res.json({ message: 'Team approved successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error approving team', error: error.message });
+  }
+};
+
 
 exports.joinTeam = async (req, res) => {
   try {

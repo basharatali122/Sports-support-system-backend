@@ -8,7 +8,9 @@ const userModel = require("./src/Routes/userRoute");
 const authRouter = require("./src/Routes/authRouter");
 const adminRouter = require("./src/Routes/adminRouter");
 const eventRouter = require("./src/Routes/eventRouter");
-const teamRouter = require("./src/Routes/teamRouter")
+const teamRouter = require("./src/Routes/teamRouter");
+const sportCategoryRoutes = require("./src/Routes/sportCategoryRoutes")
+const profileRouter = require("./src/Controller/profileController");
 
 
 const app = express();
@@ -28,6 +30,8 @@ app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use('/events', eventRouter);
 app.use("/team",teamRouter)
+app.use("/profile",profileRouter);
+app.use('/sport-categories', sportCategoryRoutes);
 
 app.get("/", (req, res) => {
     res.send("welcome");

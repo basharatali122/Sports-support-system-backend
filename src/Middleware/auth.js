@@ -2,7 +2,7 @@ require("dotenv").config();
 const { verify } = require("jsonwebtoken");
 const responseHandler = require("../../responseHandler");
 
-// Protect Routes (Authentication)
+// Protect Routes (Authentication)  this is earlier auth which i use with frontend
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -24,6 +24,29 @@ const auth = async (req, res, next) => {
     return responseHandler(res, { error: error.message });
   }
 };
+
+
+// const auth = async (req, res, next) => {
+//   try {
+//     // Get token from cookie
+//     const token = req.cookies.auth;
+
+//     if (!token) {
+//       return responseHandler(res, { error: "Unauthorized User" });
+//     }
+
+//     verify(token, process.env.SECRET, (error, data) => {
+//       if (error) {
+//         return responseHandler(res, { error: "Forbidden Access" });
+//       }
+//       req.user = { ...data };
+//       next();
+//     });
+//   } catch (error) {
+//     return responseHandler(res, { error: error.message });
+//   }
+// };
+
 
 
 // Role-based Access Control (Authorization)

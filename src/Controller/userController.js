@@ -22,6 +22,41 @@ adminCheck: async (req, res) => {
       console.error("Error in find user: ", error);
     }
   },
+
+getOrganizers: async (req, res) => {
+  try {
+    // You treat "coach" as the organizer role
+    const users = await usersSchema.find({ role: "coach" });
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No organizers (coaches) found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error fetching organizers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+}
+
+  
+  
+  ,
+
+
+
+
+
   approveUser: async (req, res) => {
     try {
       const { userId } = req.params;

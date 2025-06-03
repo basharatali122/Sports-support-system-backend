@@ -8,8 +8,11 @@ const eventSchema = new mongoose.Schema({
   location: String,
   team: { type: mongoose.Schema.Types.ObjectId, ref: "Team" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  approved: { type: Boolean, default: false }, // Admin will approve
+  approved: { type: Boolean, default: false },
+  coach: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // 👈 add this
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // 👈 and this
 });
+
 
 const Event = mongoose.model("Event", eventSchema);
 

@@ -70,6 +70,18 @@
 
 const Event = require('../Models/Event');
 
+const eventSchema = require('../Models/Event')
+//get all events 
+exports.getAllEvents=async(req,res)=>{
+  try{ const events = eventSchema.find();
+   res.json(events)}
+   catch(err){
+console.log("error found in getevnts api..",err)
+   }
+
+
+
+};
 // Register user for an event
 exports.registerForEvent = async (req, res) => {
   try {
@@ -111,15 +123,30 @@ exports.approveEvent = async (req, res) => {
 // Get all events
 exports.getEvents = async (req, res) => {
   try {
-    const events = await Event.find()
-      .populate('organizer', 'name email')
-      .populate('participants', 'name email');
+    const events = await Event.find({ approved: false })  // <-- filter here
+      .populate('coach', 'name email')
+      .populate('participants', 'name email')
+      .populate('createdBy', 'name email');
 
     res.status(200).json({ message: 'Events fetched successfully', events });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events', error: error.message });
   }
 };
+exports.getParticipantEvents = async (req, res) => {
+  try {
+    const events = await Event.find({ approved: true })  // <-- filter here
+      .populate('coach', 'name email')
+      .populate('participants', 'name email')
+      .populate('createdBy', 'name email');
+
+    res.status(200).json({ message: 'Events fetched successfully', events });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching events', error: error.message });
+  }
+};
+
+
 
 // Create a new event
 exports.createEvent = async (req, res) => {
