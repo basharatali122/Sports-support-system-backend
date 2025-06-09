@@ -1,4 +1,10 @@
 const express = require("express");
+
+const http = require("http");
+
+
+
+
 const port = 3000;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -12,9 +18,12 @@ const teamRouter = require("./src/Routes/teamRouter");
 const sportCategoryRoutes = require("./src/Routes/sportCategoryRoutes")
 const profileRouter = require("./src/Controller/profileController");
 
+const initialaizedSocketio = require("./src/Utils/Socket")
 
 const app = express();
 
+const server = http.createServer(app)
+initialaizedSocketio(server)
 // Middleware's 
 app.use(express.json());
 app.use(cookieParser());
@@ -41,6 +50,6 @@ app.get("/", (req, res) => {
 // Database Connection
 ConnectDB();
 // App Listen
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log(`server is running on port ${port}`);
 });
