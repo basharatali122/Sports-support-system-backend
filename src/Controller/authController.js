@@ -9,7 +9,9 @@ module.exports = {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return responseHandler(res, { error: "Email and password are required" });
+        return responseHandler(res, {
+          error: "Email and password are required",
+        });
       }
 
       const normalizedEmail = email.trim().toLowerCase();
@@ -19,21 +21,23 @@ module.exports = {
       });
 
       if (!user) {
-        res.clearCookie("auth");
         return responseHandler(res, { error: "Invalid credentials" });
       }
 
-      if (user.role === 'coach' && !user.approved) {
-        return res.status(403).json({ message: "Coach account pending approval" });
+      if (user.role === "coach" && !user.approved) {
+        return res
+          .status(403)
+          .json({ message: "Coach account pending approval" });
       }
 
-      if (user.role === 'participant' && !user.approvedByCoach) {
-        return res.status(403).json({ message: "Participant account pending coach approval" });
+      if (user.role === "participant" && !user.approvedByCoach) {
+        return res
+          .status(403)
+          .json({ message: "Participant account pending coach approval" });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        res.clearCookie("auth");
         return responseHandler(res, { error: "Invalid credentials" });
       }
 
@@ -43,27 +47,32 @@ module.exports = {
         email: user.email,
         role: user.role,
         approved: user.approved,
-        approvedByCoach: user.approvedByCoach
+        approvedByCoach: user.approvedByCoach,
+        sport: user.sport,
       };
 
       const token = jwt.sign(userData, process.env.SECRET, { expiresIn: "1h" });
 
-      res.cookie("auth", token, { maxAge: 3600000, httpOnly: true, sameSite: "lax" });
+      // ⛔️ Removed cookie setting
+      // ✅ Send token in response
       return responseHandler(res, { response: { token, user: userData } });
-
     } catch (error) {
       console.error("Login error:", error);
-      return responseHandler(res, { error: "Something went wrong, try again." });
+      return responseHandler(res, {
+        error: "Something went wrong, try again.",
+      });
     }
   },
 
   logout: async (req, res) => {
     try {
       res.clearCookie("auth");
-      return responseHandler(res, { response: { message: "Logout successful" } });
+      return responseHandler(res, {
+        response: { message: "Logout successful" },
+      });
     } catch (error) {
       console.error("Logout error:", error);
       return responseHandler(res, { error: "Error logging out" });
     }
-  }
+  },
 };

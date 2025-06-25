@@ -3,7 +3,9 @@ const mongoose = require("mongoose");
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
-  date: Date,
+startDate: { type: Date, required: true },
+endDate: { type: Date, required: true },
+
   time: String,
   location: String,
   team: { type: mongoose.Schema.Types.ObjectId, ref: "Team" },

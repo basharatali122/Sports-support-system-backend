@@ -2,7 +2,7 @@ const usersSchema = require("../Models/usersSchema");
 const { hash } = require("bcrypt");
 const responseHandler = require("../../responseHandler");
 
-
+const jwt = require("jsonwebtoken");
 module.exports = {
   // Route: GET /api/check-admin
 adminCheck: async (req, res) => {
@@ -22,6 +22,28 @@ adminCheck: async (req, res) => {
       console.error("Error in find user: ", error);
     }
   },
+
+
+  getAllCoaches: async (req, res) => {
+  try {
+    const coaches = await usersSchema.find({ role: "coach" });
+    res.json(coaches);
+  } catch (error) {
+    console.error("Error in finding coaches: ", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+},
+
+getAllparticipant: async (req, res) => {
+  try {
+    const coaches = await usersSchema.find({ role: "participant" });
+    res.json(coaches);
+  } catch (error) {
+    console.error("Error in finding coaches: ", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+},
+
 
 getOrganizers: async (req, res) => {
   try {
@@ -92,75 +114,91 @@ getOrganizers: async (req, res) => {
     }
   },
 
-  createUser: async (req, res) => {
-    try {
-      const { name, email, password, role } = req.body;
-  
-      // Validate input
-      if (!name || !email || !password) {
-        return res.status(400).json({
-          success: false,
-          error: "Name, email, and password are required",
-        });
-      }
-  
-      // Check if email already exists
-      const existingUser = await usersSchema.findOne({ email });
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          error: "User with this email already exists",
-        });
-      }
-  
-      // ✅ Prevent creation of multiple admins
-      if (role === "admin") {
-        const existingAdmin = await usersSchema.findOne({ role: "admin" });
-        if (existingAdmin) {
-          return res.status(400).json({
-            success: false,
-            error: "An admin account already exists",
-          });
-        }
-      }
-  
-      // Hash password and create user
-      const hashedPassword = await hash(password, 10);
-      const newUser = new usersSchema({
-        name,
-        email,
-        password: hashedPassword,
-        role: role || "participant", // Default role
-        accountStatus: "active",
-        approvalStatus: "pending-coach",
-      });
-  
-      const savedUser = await newUser.save();
-  
-      // Return response without sensitive data
-      const userResponse = {
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        role: savedUser.role,
-        accountStatus: savedUser.accountStatus,
-        approvalStatus: savedUser.approvalStatus,
-      };
-  
-      return res.status(201).json({
-        success: true,
-        data: userResponse,
-      });
-  
-    } catch (error) {
-      console.error("Error creating user:", error);
-      return res.status(500).json({
+createUser: async (req, res) => {
+  try {
+    const { name, email, password, role, sport } = req.body;
+
+    // Basic validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
         success: false,
-        error: "Internal server error",
-        message: error.message,
+        error: "Name, email, and password are required",
       });
     }
+
+    // Check if user already exists
+    const existingUser = await usersSchema.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        error: "User with this email already exists",
+      });
+    }
+
+    // Prevent multiple admins
+    if (role === "admin") {
+      const existingAdmin = await usersSchema.findOne({ role: "admin" });
+      if (existingAdmin) {
+        return res.status(400).json({
+          success: false,
+          error: "An admin account already exists",
+        });
+      }
+    }
+
+    // ✅ Coach-specific validation for sport
+    if (role === "coach") {
+      const validSports = ['Cricket', 'Football', 'Tennis', 'Hockey'];
+      if (!sport || !validSports.includes(sport)) {
+        return res.status(400).json({
+          success: false,
+          error: "Coaches must select a valid sport (Cricket, Football, Tennis, Hockey)",
+        });
+      }
+    }
+
+    // Hash password
+    const hashedPassword = await hash(password, 10);
+
+    // Create new user
+    const newUser = new usersSchema({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "participant",
+      sport: role === "coach" ? sport : undefined,
+      accountStatus: "active",
+      approvalStatus: "pending-coach",
+    });
+
+    const savedUser = await newUser.save();
+
+    // Response
+    const userResponse = {
+      _id: savedUser._id,
+      name: savedUser.name,
+      email: savedUser.email,
+      role: savedUser.role,
+      sport: savedUser.sport || null,
+      accountStatus: savedUser.accountStatus,
+      approvalStatus: savedUser.approvalStatus,
+    };
+
+    return res.status(201).json({
+      success: true,
+      data: userResponse,
+    });
+
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      message: error.message,
+    });
   }
+}
+
   ,
   rejectUser: async (req, res) => {
     try {
@@ -202,4 +240,92 @@ getOrganizers: async (req, res) => {
       console.error("Error in find user: ", error);
     }
   },
-};
+getUserById: async (req, res) => {
+  try {
+    const user = await usersSchema.findById(req.params.id).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+},
+
+updateUser: async (req, res) => {
+  try {
+    const { name, email, sportsPreferences, achievements } = req.body;
+    const updatedUser = await usersSchema.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        email,
+        sportsPreferences,
+        achievements,
+      },
+      { new: true }
+    );
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ message: "Update failed", error: err.message });
+  }
+},
+ getProfile: async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.SECRET);
+
+    const user = await usersSchema.findById(decoded.id).lean();
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error("Error in getProfile:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+},
+
+// PUT /users/profile/updateProfile
+updateProfile: async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.SECRET);
+
+    const { name, email, sportsPreferences, achievements } = req.body;
+
+    const updatedUser = await usersSchema.findByIdAndUpdate(
+      decoded.id,
+      {
+        name,
+        email,
+        sportsPreferences,
+        achievements,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (err) {
+    console.error("Error in updateProfile:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+},
+
+}
+
+

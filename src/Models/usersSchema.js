@@ -1,13 +1,15 @@
 const mongoose = require("mongoose");
-const validator = require("validator")
+const validator = require("validator");
+
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  
   email: {
     type: String,
     required: [true, "Email is required"],
     unique: true,
     lowercase: true,
-    trim:true,
+    trim: true,
     validate: {
       validator: function (value) {
         return validator.isEmail(value);
@@ -15,12 +17,22 @@ const UserSchema = new mongoose.Schema({
       message: "Please provide a valid email address",
     },
   },
+
   password: { type: String, required: true },
 
   role: {
     type: String,
     enum: ["participant", "coach", "admin"],
     default: "participant",
+  },
+
+  // ✅ New field for coach's selected sport
+  sport: {
+    type: String,
+    enum: ['Cricket', 'Football', 'Tennis', 'Hockey'],
+    required: function () {
+      return this.role === 'coach';
+    }
   },
 
   approved: { type: Boolean, default: false },
@@ -31,35 +43,30 @@ const UserSchema = new mongoose.Schema({
   achievements: [String],
   expertise: [String],
 
-  // Account status: whether user is active or blocked
   accountStatus: { 
     type: String, 
     enum: ["active", "blocked"], 
     default: "active" 
   },
 
-  // Approval status workflow
   approvalStatus: {
     type: String,
     enum: ["pending-coach", "pending-admin", "approved", "rejected"],
     default: "pending-coach"
   },
 
-  // Status 
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  
-  // Team associations (referencing Team model)
+
   teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
 
-  // Who approved the user (referencing User model)
   approvedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }
 });
- 
+
 module.exports = mongoose.model("User", UserSchema);

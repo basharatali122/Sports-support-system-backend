@@ -1,8 +1,6 @@
-require("dotenv").config();
-const { verify } = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const responseHandler = require("../../responseHandler");
 
-// Protect Routes (Authentication)  this is earlier auth which i use with frontend
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -13,11 +11,11 @@ const auth = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    verify(token, process.env.SECRET, (error, data) => {
+    jwt.verify(token, process.env.SECRET, (error, data) => {
       if (error) {
         return responseHandler(res, { error: "Forbidden Access" });
       }
-      req.user = { ...data };
+      req.user = { ...data }; // Attach user info to request
       next();
     });
   } catch (error) {
@@ -25,31 +23,6 @@ const auth = async (req, res, next) => {
   }
 };
 
-
-// const auth = async (req, res, next) => {
-//   try {
-//     // Get token from cookie
-//     const token = req.cookies.auth;
-
-//     if (!token) {
-//       return responseHandler(res, { error: "Unauthorized User" });
-//     }
-
-//     verify(token, process.env.SECRET, (error, data) => {
-//       if (error) {
-//         return responseHandler(res, { error: "Forbidden Access" });
-//       }
-//       req.user = { ...data };
-//       next();
-//     });
-//   } catch (error) {
-//     return responseHandler(res, { error: error.message });
-//   }
-// };
-
-
-
-// Role-based Access Control (Authorization)
 const role = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {

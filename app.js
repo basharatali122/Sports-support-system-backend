@@ -18,7 +18,8 @@ const teamRouter = require("./src/Routes/teamRouter");
 const sportCategoryRoutes = require("./src/Routes/sportCategoryRoutes")
 const profileRouter = require("./src/Controller/profileController");
 
-const initialaizedSocketio = require("./src/Utils/Socket")
+const initialaizedSocketio = require("./src/Utils/Socket");
+const chatRouter = require("./src/Controller/chatController");
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/events', eventRouter);
 app.use("/team",teamRouter)
 app.use("/profile",profileRouter);
 app.use('/sport-categories', sportCategoryRoutes);
+app.use("/",chatRouter)
 
 app.get("/", (req, res) => {
     res.send("welcome");
